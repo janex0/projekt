@@ -4,19 +4,19 @@ export default function Home() {
   const recipes = [
     {
       id: 1,
-      title: 'Palačinke s čokolado 🍫',
+      title: 'Palačinke s čokolado ',
       description: 'Mehke, slastne palačinke s topljeno čokolado in jagodami.',
       image: 'https://images.unsplash.com/photo-1589308078054-8329f3c6b3cc?w=800',
     },
     {
       id: 2,
-      title: 'Domača pica 🍕',
+      title: 'Domača pica ',
       description: 'Hrusta testo, paradižnikova omaka in ogromno sira!',
       image: 'https://images.unsplash.com/photo-1601924928585-3ec4e6b9fd53?w=800',
     },
     {
       id: 3,
-      title: 'Špageti carbonara 🍝',
+      title: 'Špageti carbonara ',
       description: 'Klasična italijanska jed s panceto in parmezanom.',
       image: 'https://images.unsplash.com/photo-1589307000291-17e8459a8c23?w=800',
     },
