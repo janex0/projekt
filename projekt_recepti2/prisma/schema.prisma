@@ -1,10 +1,12 @@
-generator client {
-  provider = "prisma-client-js"
-}
+// prisma/schema.prisma
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -14,3 +16,4 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 }
+
