@@ -4,7 +4,7 @@ import Header from '../components/Header';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="sl">
-      <body className="bg-gray-100">
+      <body className="bg-white text-black">
         <Header />
         {children}
       </body>
