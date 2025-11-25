@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   try {
     const { email, password, name } = await request.json();
 
-    // preveri če email že obstaja
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -20,10 +19,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // hash passworda
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // shrani v bazo
     const newUser = await prisma.user.create({
       data: {
         email,
