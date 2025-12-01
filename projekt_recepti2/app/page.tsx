@@ -1,44 +1,45 @@
-'use client';
+import { PrismaClient } from "@prisma/client";
 
-export default function Home() {
-  const recipes = [
-    {
-      id: 1,
-      title: 'Palačinke s čokolado',
-      description: 'Mehke, slastne palačinke s topljeno čokolado in jagodami.',
-      image: 'https://images.unsplash.com/photo-1589308078054-8329f3c6b3cc?w=800',
-    },
-    {
-      id: 2,
-      title: 'Domača pica',
-      description: 'Hrusta testo, paradižnikova omaka in ogromno sira!',
-      image: 'https://images.unsplash.com/photo-1601924928585-3ec4e6b9fd53?w=800',
-    },
-    {
-      id: 3,
-      title: 'Špageti carbonara',
-      description: 'Klasična italijanska jed s panceto in parmezanom.',
-      image: 'https://images.unsplash.com/photo-1589307000291-17e8459a8c23?w=800',
-    },
-  ];
+const prisma = new PrismaClient();
+
+export default async function HomePage() {
+  const recipes = await prisma.recipe.findMany({
+    orderBy: { id: "desc" }, // najnovejši prvi
+  });
 
   return (
-    <main className="min-h-screen bg-orange-50 p-6">
-      <h1 className="text-4xl font-bold text-center mb-8 text-orange-700">Najbolj priljubljeni recepti</h1>
+    <div className="p-10 max-w-5xl mx-auto">
+      <h1 className="text-4xl font-bold mb-8 text-center">Recepti</h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {recipes.map((recipe) => (
-          <div key={recipe.id} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition">
-            <img src={recipe.image} alt={recipe.title} className="h-48 w-full object-cover" />
-            <div className="p-4">
-              <h2 className="text-2xl font-semibold text-orange-600">{recipe.title}</h2>
-              <p className="text-gray-600 mt-2">{recipe.description}</p>
-            </div>
+          <div
+            key={recipe.id}
+            className="bg-white shadow-lg rounded-xl p-5 border hover:shadow-xl transition"
+          >
+            {recipe.imageUrl && (
+              <img
+                src={recipe.imageUrl}
+                alt={recipe.title}
+                className="w-full h-56 object-cover rounded-lg mb-4"
+              />
+            )}
+
+            <h2 className="text-2xl font-semibold mb-2">{recipe.title}</h2>
+
+            <p className="text-gray-600 text-sm line-clamp-3">
+              {recipe.ingredients}
+            </p>
+
+            <a
+              href={`/recipe/${recipe.id}`}
+              className="text-orange-600 font-semibold mt-3 inline-block hover:underline"
+            >
+              Poglej recept →
+            </a>
           </div>
         ))}
       </div>
-
-      
-    </main>
+    </div>
   );
 }
