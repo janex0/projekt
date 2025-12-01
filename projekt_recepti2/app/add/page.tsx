@@ -12,22 +12,12 @@ export default function AddRecipePage() {
   async function handleSubmit(e: any) {
     e.preventDefault();
 
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("authToken="))
-      ?.split("=")[1];
-
-    if (!token) {
-      setMessage("Najprej se prijavi.");
-      return;
-    }
-
-    const res = await fetch("/api/recipes/add", {
+    const res = await fetch("/api/recipes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({
         title,
         ingredients,
@@ -65,7 +55,6 @@ export default function AddRecipePage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* TITLE */}
           <div>
             <label className="block font-semibold mb-1">Naslov recepta</label>
             <input
@@ -77,7 +66,6 @@ export default function AddRecipePage() {
             />
           </div>
 
-          {/* INGREDIENTS */}
           <div>
             <label className="block font-semibold mb-1">Sestavine</label>
             <textarea
@@ -89,7 +77,6 @@ export default function AddRecipePage() {
             />
           </div>
 
-          {/* STEPS */}
           <div>
             <label className="block font-semibold mb-1">Postopek</label>
             <textarea
@@ -101,23 +88,20 @@ export default function AddRecipePage() {
             />
           </div>
 
-          {/* IMAGE */}
           <div>
             <label className="block font-semibold mb-1">Slika (URL)</label>
             <input
               className="w-full p-3 border rounded-lg text-black bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
-              
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
             />
           </div>
 
-          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold text-lg transition-transform hover:scale-[1.02]"
           >
-             Dodaj recept
+            Dodaj recept
           </button>
 
         </form>

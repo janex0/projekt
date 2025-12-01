@@ -7,9 +7,8 @@ const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    // Pravilno branje tokena iz HTTP-only cookiejev
-    const cookieStore = cookies();
-    const token = cookieStore.get("authToken")?.value;
+    const cookieStore = await cookies(); // <-- IMPORTANT
+    const token = cookieStore.get("authToken");
 
     if (!token) {
       return NextResponse.json(
@@ -18,14 +17,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Dekodiranje tokena
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded: any = jwt.verify(token.value, process.env.JWT_SECRET!);
     const userId = decoded.id;
 
-    // Preberemo podatke iz body
     const { title, ingredients, steps, imageUrl } = await request.json();
 
-    // Shranimo recept
     const recipe = await prisma.recipe.create({
       data: {
         title,
@@ -43,7 +39,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error(error);
-
     return NextResponse.json(
       { error: "Napaka pri shranjevanju recepta." },
       { status: 500 }
