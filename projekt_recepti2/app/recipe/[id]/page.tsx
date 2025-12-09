@@ -2,10 +2,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export default async function RecipePage({ params }: { params: { id: string } }) {
+export default async function RecipePage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params; // <-- KLJUČNO !!!
+
   const recipe = await prisma.recipe.findUnique({
-  where: { id: Number(params.id) },
-});
+    where: { id: Number(id) },
+  });
 
   if (!recipe) {
     return (
@@ -17,14 +19,10 @@ export default async function RecipePage({ params }: { params: { id: string } })
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      <a
-        href="/"
-        className="text-orange-600 hover:underline text-sm"
-      >
+      <a href="/" className="text-orange-600 hover:underline text-sm">
         ← Nazaj na seznam
       </a>
 
-      {/* IMAGE */}
       {recipe.imageUrl && (
         <img
           src={recipe.imageUrl}
@@ -33,10 +31,8 @@ export default async function RecipePage({ params }: { params: { id: string } })
         />
       )}
 
-      {/* TITLE */}
       <h1 className="text-4xl font-bold mt-6 mb-4">{recipe.title}</h1>
 
-      {/* INGREDIENTS */}
       <div className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Sestavine</h2>
         <p className="whitespace-pre-line text-gray-800 bg-gray-100 p-4 rounded-lg border">
@@ -44,7 +40,6 @@ export default async function RecipePage({ params }: { params: { id: string } })
         </p>
       </div>
 
-      {/* STEPS */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-2">Postopek</h2>
         <p className="whitespace-pre-line text-gray-800 bg-gray-100 p-4 rounded-lg border">
@@ -52,7 +47,6 @@ export default async function RecipePage({ params }: { params: { id: string } })
         </p>
       </div>
 
-      {/* DATE */}
       <p className="text-gray-500 text-sm mt-4">
         Dodano: {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
       </p>
