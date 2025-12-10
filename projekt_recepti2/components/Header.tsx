@@ -1,23 +1,35 @@
-'use client';
+import Link from "next/link";
+import { getUser } from "@/lib/auth";
 
-import Link from 'next/link';
+export default async function Navbar() {
+  const user = await getUser(); // <-- DODANO
 
-export default function Header() {
   return (
-    <header className="bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md p-4">
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-        <h1 className="text-2xl font-extrabold tracking-wide mb-2 md:mb-0 hover:text-yellow-300 transition">
-           Recepti App
-        </h1>
+    <nav className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4">
+      <ul className="flex gap-6 justify-center text-lg font-semibold">
 
-        <nav className="flex space-x-4 text-lg font-medium">
-          <Link href="/" className="hover:text-yellow-300 transition">Domov</Link>
-          <Link href="/add" className="hover:text-yellow-300 transition">Dodaj recept</Link>
-          <Link href="/login" className="hover:text-yellow-300 transition">Prijava</Link>
-          <Link href="/signup" className="hover:text-yellow-300 transition">Registracija</Link>
-          <Link href="/admin" className="hover:text-yellow-300 transition">Admin</Link>
-        </nav>
-      </div>
-    </header>
+        <li><Link href="/">Domov</Link></li>
+        <li><Link href="/add">Dodaj recept</Link></li>
+
+        {!user && (
+          <>
+            <li><Link href="/login">Prijava</Link></li>
+            <li><Link href="/signup">Registracija</Link></li>
+          </>
+        )}
+
+        {user && (
+          <>
+            <li><Link href="/profile">Profil</Link></li>
+            <li><Link href="/logout">Odjava</Link></li>
+          </>
+        )}
+
+        {user?.role === "ADMIN" && (
+          <li><Link href="/admin/dashboard">Admin</Link></li>
+        )}
+
+      </ul>
+    </nav>
   );
 }

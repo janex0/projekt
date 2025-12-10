@@ -31,11 +31,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Ustvarimo JWT token
+    // 🔥 Ustvarimo JWT token z vključenim ROLE
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
+        role: user.role,   // ⬅️⬅️⬅️ TUKAJ SMO DODALI ROLE
       },
       process.env.JWT_SECRET as string,
       {
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
     });
 
     return response;
+
   } catch (error) {
     console.error(error);
     return NextResponse.json(
