@@ -5,20 +5,14 @@ import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+// ➕ DODAJ RECEPT
+export async function POST(request: Request) {
   try {
-    // 🍪 cookies() JE async
     const cookieStore = await cookies();
     const token = cookieStore.get("authToken");
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Niste prijavljeni." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Niste prijavljeni." }, { status: 401 });
     }
 
     const decoded = jwt.verify(
@@ -26,30 +20,27 @@ export async function DELETE(
       process.env.JWT_SECRET!
     ) as { id: number };
 
-    const recipe = await prisma.recipe.findUnique({
-      where: { id: Number(params.id) },
-    });
+    const body = await request.json();
+    const { title, ingredients, steps, imageUrl } = body;
 
-    if (!recipe) {
+    if (!title || !ingredients || !steps) {
       return NextResponse.json(
-        { error: "Recept ne obstaja." },
-        { status: 404 }
+        { error: "Vsa polja so obvezna." },
+        { status: 400 }
       );
     }
 
-    // 🔐 permission check
-    if (recipe.userId !== decoded.id) {
-      return NextResponse.json(
-        { error: "Nimaš dovoljenja za brisanje." },
-        { status: 403 }
-      );
-    }
-
-    await prisma.recipe.delete({
-      where: { id: Number(params.id) },
+    const recipe = await prisma.recipe.create({
+      data: {
+        title,
+        ingredients,
+        steps,
+        imageUrl,
+        userId: decoded.id,
+      },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(recipe, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
