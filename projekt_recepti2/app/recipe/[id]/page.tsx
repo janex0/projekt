@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export default async function RecipePage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params; // <-- KLJUČNO !!!
+  const { id } = await props.params;
 
   const recipe = await prisma.recipe.findUnique({
     where: { id: Number(id) },
@@ -11,45 +11,80 @@ export default async function RecipePage(props: { params: Promise<{ id: string }
 
   if (!recipe) {
     return (
-      <div className="p-10 text-center">
-        <h1 className="text-3xl font-bold">Recept ni bil najden.</h1>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">Recept ni bil najden 😕</h1>
+          <a href="/" className="text-orange-600 hover:underline">
+            Nazaj na domov
+          </a>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <a href="/" className="text-orange-600 hover:underline text-sm">
-        ← Nazaj na seznam
-      </a>
+    <div className="min-h-screen bg-gray-50 py-10">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
 
-      {recipe.imageUrl && (
-        <img
-          src={recipe.imageUrl}
-          alt={recipe.title}
-          className="w-full h-80 object-cover rounded-xl mt-4 shadow-md"
-        />
-      )}
+        {/* HEADER / IMAGE */}
+        {recipe.imageUrl && (
+          <div className="relative">
+            <img
+              src={recipe.imageUrl}
+              alt={recipe.title}
+              className="w-full h-[420px] object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <h1 className="absolute bottom-6 left-6 text-white text-4xl font-extrabold drop-shadow">
+              {recipe.title}
+            </h1>
+          </div>
+        )}
 
-      <h1 className="text-4xl font-bold mt-6 mb-4">{recipe.title}</h1>
+        {/* CONTENT */}
+        <div className="p-8 space-y-10">
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">Sestavine</h2>
-        <p className="whitespace-pre-line text-gray-800 bg-gray-100 p-4 rounded-lg border">
-          {recipe.ingredients}
-        </p>
+          {/* BACK LINK */}
+          <a
+            href="/"
+            className="inline-block text-orange-600 font-medium hover:underline"
+          >
+            ← Nazaj na seznam
+          </a>
+
+          {/* INGREDIENTS */}
+          <section>
+            <h2 className="text-2xl font-bold mb-3 flex items-center gap-2">
+              🧺 Sestavine
+            </h2>
+            <div className="bg-gray-100 border rounded-xl p-5 whitespace-pre-line leading-relaxed">
+              {recipe.ingredients}
+            </div>
+          </section>
+
+          {/* STEPS */}
+          <section>
+            <h2 className="text-2xl font-bold mb-3 flex items-center gap-2">
+              👨‍🍳 Postopek
+            </h2>
+            <div className="bg-gray-100 border rounded-xl p-5 whitespace-pre-line leading-relaxed">
+              {recipe.steps}
+            </div>
+          </section>
+
+          {/* FOOTER */}
+          <div className="pt-6 border-t text-sm text-gray-500 flex justify-between items-center">
+            <span>
+              Dodano:{" "}
+              {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
+            </span>
+
+            <span className="italic text-gray-400">
+              Dober tek! 😋
+            </span>
+          </div>
+        </div>
       </div>
-
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-2">Postopek</h2>
-        <p className="whitespace-pre-line text-gray-800 bg-gray-100 p-4 rounded-lg border">
-          {recipe.steps}
-        </p>
-      </div>
-
-      <p className="text-gray-500 text-sm mt-4">
-        Dodano: {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
-      </p>
     </div>
   );
 }
