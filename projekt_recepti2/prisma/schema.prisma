@@ -10,13 +10,14 @@ generator client {
 model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique
-  password  String
+  password  String?   // ⬅️ NUJNO optional
+  googleId  String?   @unique
   name      String?
   createdAt DateTime  @default(now())
-  recipes   Recipe[]  // <-- DODANO
-
-   role      String    @default("user")
+  recipes   Recipe[]
+  role      String    @default("user")
 }
+
 
 model Recipe {
   id          Int      @id @default(autoincrement())
