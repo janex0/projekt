@@ -1,32 +1,77 @@
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { getUser } from "@/lib/auth";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
+type Params = {
+  params: Promise<{ id: string }>;
+};
+
+// 🗑️ DELETE recept
 export async function DELETE(
-  _: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: Params
 ) {
-  const user = await getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    // ✅ cookies() JE ASYNC
+    const cookieStore = await cookies();
+    const token = cookieStore.get("authToken");
 
-  const recipe = await prisma.recipe.findUnique({
-    where: { id: Number(params.id) },
-  });
+    if (!token) {
+      return NextResponse.json(
+        { error: "Niste prijavljeni." },
+        { status: 401 }
+      );
+    }
 
-  if (!recipe) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const decoded = jwt.verify(
+      token.value,
+      process.env.JWT_SECRET!
+    ) as { id: number };
+
+    // ✅ params JE Promise
+    const { id } = await context.params;
+    const recipeId = Number(id);
+
+    if (Number.isNaN(recipeId)) {
+      return NextResponse.json(
+        { error: "Neveljaven ID." },
+        { status: 400 }
+      );
+    }
+
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: recipeId },
+    });
+
+    if (!recipe) {
+      return NextResponse.json(
+        { error: "Recept ne obstaja." },
+        { status: 404 }
+      );
+    }
+
+    // 🔒 pravice (samo lastnik ali admin)
+    if (recipe.userId !== decoded.id) {
+      return NextResponse.json(
+        { error: "Nimate dovoljenja." },
+        { status: 403 }
+      );
+    }
+
+    await prisma.recipe.delete({
+      where: { id: recipeId },
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { error: "Napaka na strežniku." },
+      { status: 500 }
+    );
   }
-
-  // ❗ PERMISSIONS CHECK
-  if (user.role !== "ADMIN" && recipe.userId !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  await prisma.recipe.delete({
-    where: { id: recipe.id },
-  });
-
-  return NextResponse.json({ success: true });
 }
