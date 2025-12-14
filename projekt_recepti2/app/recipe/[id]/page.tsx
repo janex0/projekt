@@ -1,32 +1,38 @@
 import { PrismaClient } from "@prisma/client";
+import Link from "next/link";
 
 const prisma = new PrismaClient();
 
-export default async function RecipePage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
-
+export default async function RecipePage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const recipe = await prisma.recipe.findUnique({
-    where: { id: Number(id) },
+    where: { id: Number(params.id) },
   });
 
   if (!recipe) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">Recept ni bil najden 😕</h1>
-          <a href="/" className="text-orange-600 hover:underline">
-            Nazaj na domov
-          </a>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Recept ni bil najden 😕</h1>
+          <Link
+            href="/"
+            className="text-orange-600 font-medium hover:underline"
+          >
+            ← Nazaj na domov
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <article className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
 
-        {/* HEADER / IMAGE */}
+        {/* IMAGE HEADER */}
         {recipe.imageUrl && (
           <div className="relative">
             <img
@@ -34,8 +40,8 @@ export default async function RecipePage(props: { params: Promise<{ id: string }
               alt={recipe.title}
               className="w-full h-[420px] object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <h1 className="absolute bottom-6 left-6 text-white text-4xl font-extrabold drop-shadow">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <h1 className="absolute bottom-6 left-6 text-white text-4xl font-extrabold drop-shadow-lg">
               {recipe.title}
             </h1>
           </div>
@@ -44,13 +50,13 @@ export default async function RecipePage(props: { params: Promise<{ id: string }
         {/* CONTENT */}
         <div className="p-8 space-y-10">
 
-          {/* BACK LINK */}
-          <a
+          {/* BACK */}
+          <Link
             href="/"
             className="inline-block text-orange-600 font-medium hover:underline"
           >
             ← Nazaj na seznam
-          </a>
+          </Link>
 
           {/* INGREDIENTS */}
           <section>
@@ -73,18 +79,16 @@ export default async function RecipePage(props: { params: Promise<{ id: string }
           </section>
 
           {/* FOOTER */}
-          <div className="pt-6 border-t text-sm text-gray-500 flex justify-between items-center">
+          <footer className="pt-6 border-t text-sm text-gray-500 flex justify-between items-center">
             <span>
               Dodano:{" "}
               {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
             </span>
+            <span className="italic text-gray-400">Dober tek 😋</span>
+          </footer>
 
-            <span className="italic text-gray-400">
-              Dober tek! 😋
-            </span>
-          </div>
         </div>
-      </div>
+      </article>
     </div>
   );
 }
