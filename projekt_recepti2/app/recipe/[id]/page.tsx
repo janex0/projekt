@@ -6,10 +6,24 @@ const prisma = new PrismaClient();
 export default async function RecipePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  // ✅ OBVEZNO await
+  const { id } = await params;
+
+  const recipeId = Number(id);
+
+  // zaščita pred napačnim ID
+  if (Number.isNaN(recipeId)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <h1 className="text-2xl font-bold">Neveljaven ID recepta</h1>
+      </div>
+    );
+  }
+
   const recipe = await prisma.recipe.findUnique({
-    where: { id: Number(params.id) },
+    where: { id: recipeId },
   });
 
   if (!recipe) {
@@ -17,10 +31,7 @@ export default async function RecipePage({
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">Recept ni bil najden 😕</h1>
-          <Link
-            href="/"
-            className="text-orange-600 font-medium hover:underline"
-          >
+          <Link href="/" className="text-orange-600 hover:underline">
             ← Nazaj na domov
           </Link>
         </div>
@@ -32,7 +43,6 @@ export default async function RecipePage({
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <article className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
 
-        {/* IMAGE HEADER */}
         {recipe.imageUrl && (
           <div className="relative">
             <img
@@ -41,52 +51,38 @@ export default async function RecipePage({
               className="w-full h-[420px] object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <h1 className="absolute bottom-6 left-6 text-white text-4xl font-extrabold drop-shadow-lg">
+            <h1 className="absolute bottom-6 left-6 text-white text-4xl font-extrabold">
               {recipe.title}
             </h1>
           </div>
         )}
 
-        {/* CONTENT */}
         <div className="p-8 space-y-10">
-
-          {/* BACK */}
-          <Link
-            href="/"
-            className="inline-block text-orange-600 font-medium hover:underline"
-          >
+          <Link href="/" className="text-orange-600 hover:underline">
             ← Nazaj na seznam
           </Link>
 
-          {/* INGREDIENTS */}
           <section>
-            <h2 className="text-2xl font-bold mb-3 flex items-center gap-2">
-              🧺 Sestavine
-            </h2>
-            <div className="bg-gray-100 border rounded-xl p-5 whitespace-pre-line leading-relaxed">
+            <h2 className="text-2xl font-bold mb-3">🧺 Sestavine</h2>
+            <div className="bg-gray-100 p-5 rounded-xl whitespace-pre-line">
               {recipe.ingredients}
             </div>
           </section>
 
-          {/* STEPS */}
           <section>
-            <h2 className="text-2xl font-bold mb-3 flex items-center gap-2">
-              👨‍🍳 Postopek
-            </h2>
-            <div className="bg-gray-100 border rounded-xl p-5 whitespace-pre-line leading-relaxed">
+            <h2 className="text-2xl font-bold mb-3">👨‍🍳 Postopek</h2>
+            <div className="bg-gray-100 p-5 rounded-xl whitespace-pre-line">
               {recipe.steps}
             </div>
           </section>
 
-          {/* FOOTER */}
-          <footer className="pt-6 border-t text-sm text-gray-500 flex justify-between items-center">
+          <footer className="border-t pt-4 text-sm text-gray-500 flex justify-between">
             <span>
               Dodano:{" "}
               {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
             </span>
-            <span className="italic text-gray-400">Dober tek 😋</span>
+            <span>Dober tek 😋</span>
           </footer>
-
         </div>
       </article>
     </div>
