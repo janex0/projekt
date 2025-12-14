@@ -5,8 +5,8 @@ export default async function Navbar() {
   const user = await getUser(); // <-- DODANO
 
   return (
-    <nav className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4">
-      <ul className="flex gap-6 justify-center text-lg font-semibold">
+    <nav className="bg-gradient-to-r from-orange-500 to-red-500 p-4">
+      <ul className="flex gap-6 justify-center text-lg font-semibold text-white">
 
         <li><Link href="/">Domov</Link></li>
         <li><Link href="/add">Dodaj recept</Link></li>
@@ -21,7 +21,7 @@ export default async function Navbar() {
         {user && (
           <>
             <li><Link href="/profile">Profil</Link></li>
-            <li><Link href="/logout">Odjava</Link></li>
+            <li><a href="/logout">Odjava</a></li>
           </>
         )}
 
