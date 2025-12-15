@@ -8,14 +8,13 @@ generator client {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String?   // ⬅️ pomembno (Google user nima gesla)
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String?  // ⬅️ ZDAJ OPTIONAL
   name      String?
-  googleId  String?   @unique
-  createdAt DateTime  @default(now())
-  role      String    @default("user")
-
+  googleId  String?  @unique
+  role      String   @default("user")
+  createdAt DateTime @default(now())
   recipes   Recipe[]
 }
 

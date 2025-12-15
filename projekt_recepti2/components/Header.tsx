@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { getUser } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export default async function Navbar() {
-  const user = await getUser(); // <-- DODANO
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
 
   return (
     <nav className="bg-gradient-to-r from-orange-500 to-red-500 p-4">
       <ul className="flex gap-6 justify-center text-lg font-semibold text-white">
-
         <li><Link href="/">Domov</Link></li>
         <li><Link href="/add">Dodaj recept</Link></li>
 
@@ -21,14 +22,13 @@ export default async function Navbar() {
         {user && (
           <>
             <li><Link href="/profile">Profil</Link></li>
-            <li><a href="/logout">Odjava</a></li>
+            <li><Link href="/api/auth/signout">Odjava</Link></li>
           </>
         )}
 
-        {user?.role === "ADMIN" && (
+        {user?.role === "admin" && (
           <li><Link href="/admin/dashboard">Admin</Link></li>
         )}
-
       </ul>
     </nav>
   );
