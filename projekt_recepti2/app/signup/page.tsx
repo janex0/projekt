@@ -18,42 +18,36 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    // 1️⃣ USTVARI USERJA (poseben register endpoint)
-    const res = await fetch("/api/auth/register", {
+    const res = await fetch("/api/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
 
     const data = await res.json();
+    setLoading(false);
 
     if (!res.ok) {
-      setLoading(false);
-      setError(data.error || "Napaka pri registraciji");
+      setError(data.error || "Napaka pri registraciji.");
       return;
     }
 
-    // 2️⃣ TAKOJŠNJA PRIJAVA PREK NEXTAUTH
+    // po uspešni registraciji → avtomatska prijava
     await signIn("credentials", {
       email,
       password,
       callbackUrl: "/",
     });
-
-    setLoading(false);
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
 
-        <div className="text-center">
-          <h1 className="text-3xl font-extrabold">Ustvari račun</h1>
-          <p className="text-gray-500">Pridruži se in dodajaj recepte 🍽️</p>
-        </div>
+        <h1 className="text-3xl font-extrabold text-center">Ustvari račun</h1>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded text-center">
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
             {error}
           </div>
         )}
@@ -93,7 +87,7 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
+        <div className="flex items-center gap-3 text-gray-400 text-sm">
           <div className="flex-1 h-px bg-gray-200" />
           ali
           <div className="flex-1 h-px bg-gray-200" />
@@ -102,7 +96,7 @@ export default function SignupPage() {
         {/* GOOGLE */}
         <button
           onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="w-full border rounded-lg py-2.5 flex justify-center gap-3"
+          className="w-full border py-3 rounded-lg flex items-center justify-center gap-3"
         >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -111,12 +105,6 @@ export default function SignupPage() {
           Nadaljuj z Google
         </button>
 
-        <p className="text-center text-sm">
-          Imaš že račun?{" "}
-          <a href="/login" className="text-orange-600 font-semibold">
-            Prijavi se
-          </a>
-        </p>
       </div>
     </div>
   );
