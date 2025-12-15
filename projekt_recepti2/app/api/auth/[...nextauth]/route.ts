@@ -1,71 +1,91 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
+  session: { strategy: "jwt" },
+
   providers: [
+    // 🔐 EMAIL + PASSWORD
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { type: "email" },
+        password: { type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.password) return null;
+
+        const valid = await bcrypt.compare(credentials.password, user.password);
+        if (!valid) return null;
+
+        return {
+          id: user.id.toString(), // ⬅️ STRING
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
+      },
+    }),
+
+    // 🔵 GOOGLE
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
 
-  secret: process.env.NEXTAUTH_SECRET,
-
   callbacks: {
-    // 🔹 poveže Google user → Prisma user
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        if (!user.email) return false;
-
         let dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
+          where: { email: user.email! },
         });
 
         if (!dbUser) {
           dbUser = await prisma.user.create({
             data: {
-              email: user.email,
+              email: user.email!,
               name: user.name,
               googleId: account.providerAccountId,
-              role: "user", // ⬅️ PRIVZETO
             },
           });
         }
 
-        return true;
+        user.id = dbUser.id.toString();
+        (user as any).role = dbUser.role;
       }
 
-      return false;
+      return true;
     },
 
-    // 🔹 shrani userId + role v JWT
-    async jwt({ token }) {
-      if (!token.email) return token;
-
-      const dbUser = await prisma.user.findUnique({
-        where: { email: token.email },
-      });
-
-      if (dbUser) {
-        token.id = dbUser.id;
-        token.role = dbUser.role;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
       }
-
       return token;
     },
 
-    // 🔹 JWT → session (frontend)
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as number;
+        session.user.id = Number(token.id); // ⬅️ zdaj je number
         session.user.role = token.role as string;
       }
       return session;
     },
   },
-});
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

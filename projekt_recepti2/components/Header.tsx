@@ -26,7 +26,7 @@ export default async function Navbar() {
           </>
         )}
 
-        {user?.role === "admin" && (
+        {user?.role === "ADMIN" && (
           <li><Link href="/admin/dashboard">Admin</Link></li>
         )}
       </ul>

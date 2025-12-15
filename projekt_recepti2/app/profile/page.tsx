@@ -1,86 +1,94 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 import { PrismaClient } from "@prisma/client";
-import { getUser } from "@/lib/auth";
+import Link from "next/link";
 
 const prisma = new PrismaClient();
 
 export default async function ProfilePage() {
-  const userToken = await getUser();
-  if (!userToken) {
-    return <div className="p-10 text-center">Niste prijavljeni.</div>;
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return (
+      <div className="p-10 text-center text-lg">
+        Niste prijavljeni.
+      </div>
+    );
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: userToken.id },
+    where: { email: session.user.email },
+    include: {
+      recipes: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
 
-  const recipes = await prisma.recipe.findMany({
-    where: { userId: userToken.id },
-    orderBy: { createdAt: "desc" },
-  });
+  if (!user) {
+    return (
+      <div className="p-10 text-center text-lg">
+        Uporabnik ne obstaja.
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-5xl mx-auto p-10 space-y-12">
+    <div className="max-w-5xl mx-auto p-10 space-y-10">
       {/* PROFIL */}
-      <section className="bg-white rounded-2xl shadow p-8">
-        <h1 className="text-3xl font-bold mb-1">Profil</h1>
-        <p className="text-gray-500">{user?.email}</p>
+      <section className="bg-white rounded-2xl shadow p-8 space-y-2">
+        <h1 className="text-3xl font-bold">👤 Profil</h1>
+
+        <p>
+          <span className="font-semibold">Email:</span> {user.email}
+        </p>
+
+        <p>
+          <span className="font-semibold">Ime:</span>{" "}
+          {user.name ?? "—"}
+        </p>
+
+        <p>
+          <span className="font-semibold">Vloga:</span>{" "}
+          {user.role}
+        </p>
       </section>
 
       {/* MOJI RECEPTI */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Moji recepti</h2>
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">🍽️ Moji recepti</h2>
 
-        <div className="grid gap-4">
-          {recipes.map(r => (
-            <div
-              key={r.id}
-              className="flex justify-between items-center bg-gray-100 p-4 rounded-xl"
-            >
-              <div>
-                <p className="font-semibold">{r.title}</p>
-                <p className="text-sm text-gray-500">
-                  Dodano: {new Date(r.createdAt).toLocaleDateString("sl-SI")}
-                </p>
-              </div>
-
-              <a
-                href={`/admin/edit/${r.id}`}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        {user.recipes.length === 0 ? (
+          <p className="text-gray-500">
+            Še nimaš dodanih receptov.
+          </p>
+        ) : (
+          <div className="grid gap-4">
+            {user.recipes.map((recipe) => (
+              <div
+                key={recipe.id}
+                className="flex justify-between items-center bg-gray-100 p-5 rounded-xl"
               >
-                Uredi
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
+                <div>
+                  <p className="font-semibold text-lg">
+                    {recipe.title}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Dodano:{" "}
+                    {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
+                  </p>
+                </div>
 
-      {/* UREDI PROFIL */}
-      <section className="bg-white rounded-2xl shadow p-8 max-w-xl">
-        <h2 className="text-2xl font-semibold mb-4">Uredi profil</h2>
-
-        <form
-          action="/api/profile/update"
-          method="POST"
-          className="space-y-4"
-        >
-          <input
-            name="name"
-            defaultValue={user?.name ?? ""}
-            placeholder="Ime"
-            className="border p-3 rounded-lg w-full"
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Novo geslo"
-            className="border p-3 rounded-lg w-full"
-          />
-
-          <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-            Shrani spremembe
-          </button>
-        </form>
+                <Link
+                  href={`/recipe/${recipe.id}`}
+                  className="text-orange-600 font-semibold hover:underline"
+                >
+                  Odpri →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
