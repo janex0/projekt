@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
@@ -9,7 +10,6 @@ export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
-    // Preverimo, če uporabnik obstaja
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -21,7 +21,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Preverimo geslo
+    // 🚨 GOOGLE USER → nima gesla
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "Ta račun uporablja Google prijavo." },
+        { status: 400 }
+      );
+    }
+
+    // ✅ zdaj je password 100% string
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -31,24 +39,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 🔥 Ustvarimo JWT token z vključenim ROLE
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,   // ⬅️⬅️⬅️ TUKAJ SMO DODALI ROLE
-      },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "7d",
-      }
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
     );
 
-    // Pošljemo cookie nazaj
-    const response = NextResponse.json(
-      { message: "Prijava uspešna!" },
-      { status: 200 }
-    );
+    const response = NextResponse.json({ success: true });
 
     response.cookies.set("authToken", token, {
       httpOnly: true,
@@ -57,11 +54,10 @@ export async function POST(request: Request) {
     });
 
     return response;
-
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
-      { error: "Napaka na strežniku" },
+      { error: "Napaka na strežniku." },
       { status: 500 }
     );
   }
