@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 
 export default function AddRecipePage() {
+  const { data: session, status } = useSession();
+
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [steps, setSteps] = useState("");
@@ -11,8 +14,33 @@ export default function AddRecipePage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
+  // ⛔ če ni prijavljen
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-lg font-semibold">Za dodajanje recepta se moraš prijaviti.</p>
+        <button
+          onClick={() => signIn()}
+          className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold"
+        >
+          Prijavi se
+        </button>
+      </div>
+    );
+  }
+
+  // ⏳ loading
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Nalagam…
+      </div>
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setMessage("");
 
     const formData = new FormData();
     formData.append("title", title);
@@ -27,7 +55,6 @@ export default function AddRecipePage() {
 
     const res = await fetch("/api/recipes", {
       method: "POST",
-      credentials: "include",
       body: formData,
     });
 
@@ -62,58 +89,42 @@ export default function AddRecipePage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {/* NASLOV */}
           <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Naslov recepta
-            </label>
+            <label className="block mb-2 font-semibold">Naslov recepta</label>
             <input
-              className="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="Npr. Čokoladna torta"
+              className="w-full p-3 border rounded-xl"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
             />
           </div>
 
-          {/* SESTAVINE */}
           <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Sestavine
-            </label>
+            <label className="block mb-2 font-semibold">Sestavine</label>
             <textarea
-              className="w-full p-3 border rounded-xl bg-gray-50 h-32 resize-none focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="3 jajca, 200g moke, 100g sladkorja ..."
+              className="w-full p-3 border rounded-xl h-32"
               value={ingredients}
               onChange={(e) => setIngredients(e.target.value)}
               required
             />
           </div>
 
-          {/* POSTOPEK */}
           <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Postopek
-            </label>
+            <label className="block mb-2 font-semibold">Postopek</label>
             <textarea
-              className="w-full p-3 border rounded-xl bg-gray-50 h-40 resize-none focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="Opisi korake priprave ..."
+              className="w-full p-3 border rounded-xl h-40"
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
               required
             />
           </div>
 
-          {/* SLIKA */}
           <div className="space-y-4">
-            <label className="block font-semibold text-gray-700">
-              Slika recepta
-            </label>
+            <label className="block font-semibold">Slika</label>
 
-            {/* URL */}
             <input
-              className="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="URL slike (neobvezno)"
+              className="w-full p-3 border rounded-xl"
+              placeholder="URL slike"
               value={imageUrl}
               onChange={(e) => {
                 setImageUrl(e.target.value);
@@ -122,17 +133,10 @@ export default function AddRecipePage() {
               }}
             />
 
-            <div className="text-center text-gray-400 font-semibold">ALI</div>
+            <div className="text-center text-gray-400">ALI</div>
 
-            {/* UPLOAD */}
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-orange-400 rounded-xl p-6 cursor-pointer hover:bg-orange-50 transition">
-              <span className="text-orange-600 font-semibold text-lg">
-                📁 Izberi sliko iz računalnika
-              </span>
-              <span className="text-sm text-gray-500 mt-1">
-                PNG, JPG, JPEG
-              </span>
-
+            <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer">
+              <span className="font-semibold">📁 Izberi sliko</span>
               <input
                 type="file"
                 accept="image/*"
@@ -141,32 +145,23 @@ export default function AddRecipePage() {
                   const file = e.target.files?.[0] || null;
                   setImageFile(file);
                   setImageUrl("");
-                  if (file) {
-                    setPreview(URL.createObjectURL(file));
-                  } else {
-                    setPreview(null);
-                  }
+                  setPreview(file ? URL.createObjectURL(file) : null);
                 }}
               />
             </label>
 
-            {/* PREVIEW */}
             {preview && (
-              <div className="mt-4">
-                <p className="font-semibold mb-2 text-gray-700">Predogled slike:</p>
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-full max-h-64 object-cover rounded-xl border shadow"
-                />
-              </div>
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-full max-h-64 object-cover rounded-xl"
+              />
             )}
           </div>
 
-          {/* GUMB */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 transition"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg"
           >
             ➕ Dodaj recept
           </button>
