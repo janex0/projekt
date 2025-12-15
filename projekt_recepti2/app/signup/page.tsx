@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+
 
 export default function SignupPage() {
   const router = useRouter();
@@ -126,19 +128,21 @@ export default function SignupPage() {
 
         {/* GOOGLE BUTTON (UI pripravljeno) */}
         <button
-          type="button"
-          className="w-full flex items-center justify-center gap-3
-                     border rounded-lg py-2.5 hover:bg-gray-50 transition"
-        >
-          <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
-            className="w-5 h-5"
-          />
-          <span className="font-medium text-gray-700">
-            Nadaljuj z Google
-          </span>
-        </button>
+  type="button"
+  onClick={() => signIn("google", { callbackUrl: "/" })}
+  className="w-full flex items-center justify-center gap-3
+             border rounded-lg py-2.5 hover:bg-gray-50 transition"
+>
+  <img
+    src="https://www.svgrepo.com/show/475656/google-color.svg"
+    alt="Google"
+    className="w-5 h-5"
+  />
+  <span className="font-medium text-gray-700">
+    Nadaljuj z Google
+  </span>
+</button>
+
 
         {/* FOOTER */}
         <p className="text-center text-sm text-gray-500">
