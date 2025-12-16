@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -8,12 +10,11 @@ export default async function RecipePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // ✅ OBVEZNO await
   const { id } = await params;
+  const session = await getServerSession(authOptions);
 
   const recipeId = Number(id);
 
-  // zaščita pred napačnim ID
   if (Number.isNaN(recipeId)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -30,14 +31,17 @@ export default async function RecipePage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">Recept ni bil najden 😕</h1>
+          <h1 className="text-3xl font-bold">Recept ni bil najden</h1>
           <Link href="/" className="text-orange-600 hover:underline">
-            ← Nazaj na domov
+            Nazaj na domov
           </Link>
         </div>
       </div>
     );
   }
+
+  const canEdit =
+    session?.user?.id && Number(session.user.id) === recipe.userId;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -58,19 +62,29 @@ export default async function RecipePage({
         )}
 
         <div className="p-8 space-y-10">
-          <Link href="/" className="text-orange-600 hover:underline">
-            ← Nazaj na seznam
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-orange-600 hover:underline">
+              Nazaj na seznam
+            </Link>
+            {canEdit && (
+              <Link
+                href={`/recipe/${recipe.id}/edit`}
+                className="text-sm font-semibold text-orange-600 hover:underline"
+              >
+                Uredi recept
+              </Link>
+            )}
+          </div>
 
           <section>
-            <h2 className="text-2xl font-bold mb-3">🧺 Sestavine</h2>
+            <h2 className="text-2xl font-bold mb-3">Sestavine</h2>
             <div className="bg-gray-100 p-5 rounded-xl whitespace-pre-line">
               {recipe.ingredients}
             </div>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-3">👨‍🍳 Postopek</h2>
+            <h2 className="text-2xl font-bold mb-3">Postopek</h2>
             <div className="bg-gray-100 p-5 rounded-xl whitespace-pre-line">
               {recipe.steps}
             </div>
@@ -81,7 +95,7 @@ export default async function RecipePage({
               Dodano:{" "}
               {new Date(recipe.createdAt).toLocaleDateString("sl-SI")}
             </span>
-            <span>Dober tek 😋</span>
+            <span>Dober tek!</span>
           </footer>
         </div>
       </article>

@@ -3,8 +3,18 @@
 import { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 
+// Helper to convert a chosen file to a data URL so we can store it as imageUrl.
+async function fileToDataUrl(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AddRecipePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
@@ -13,8 +23,8 @@ export default function AddRecipePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // ⛔ če ni prijavljen
   if (status === "unauthenticated") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -29,17 +39,18 @@ export default function AddRecipePage() {
     );
   }
 
-  // ⏳ loading
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Nalagam…
+        Nalagam ...
       </div>
     );
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     setMessage("");
 
     const formData = new FormData();
@@ -48,28 +59,35 @@ export default function AddRecipePage() {
     formData.append("steps", steps);
 
     if (imageFile) {
-      formData.append("image", imageFile);
+      const base64 = await fileToDataUrl(imageFile);
+      if (base64) formData.append("imageUrl", base64);
     } else if (imageUrl) {
       formData.append("imageUrl", imageUrl);
     }
 
-    const res = await fetch("/api/recipes", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      setMessage("✅ Recept uspešno dodan!");
-      setTitle("");
-      setIngredients("");
-      setSteps("");
-      setImageUrl("");
-      setImageFile(null);
-      setPreview(null);
-    } else {
-      setMessage(data.error || "❌ Napaka pri dodajanju recepta.");
+      if (res.ok) {
+        setMessage("Recept uspešno dodan!");
+        setTitle("");
+        setIngredients("");
+        setSteps("");
+        setImageUrl("");
+        setImageFile(null);
+        setPreview(null);
+      } else {
+        setMessage(data.error || "Napaka pri dodajanju recepta.");
+      }
+    } catch (err) {
+      setMessage("Napaka pri dodajanju recepta.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -78,7 +96,7 @@ export default function AddRecipePage() {
       <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-10 border">
 
         <h1 className="text-4xl font-extrabold text-center mb-10 text-gray-800">
-          🍰 Dodaj nov recept
+          Dodaj nov recept
         </h1>
 
         {message && (
@@ -136,7 +154,7 @@ export default function AddRecipePage() {
             <div className="text-center text-gray-400">ALI</div>
 
             <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer">
-              <span className="font-semibold">📁 Izberi sliko</span>
+              <span className="font-semibold">Izberi sliko</span>
               <input
                 type="file"
                 accept="image/*"
@@ -161,9 +179,10 @@ export default function AddRecipePage() {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg"
+            disabled={submitting}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg disabled:opacity-70"
           >
-            ➕ Dodaj recept
+            {submitting ? "Dodajam..." : "Dodaj recept"}
           </button>
 
         </form>
