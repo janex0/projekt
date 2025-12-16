@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
+import DeleteRecipeButton from "@/components/DeleteRecipeButton";
 
 const prisma = new PrismaClient();
 
@@ -92,6 +93,7 @@ export default async function ProfilePage() {
                   >
                     Uredi
                   </Link>
+                  <DeleteRecipeButton recipeId={recipe.id} />
                 </div>
               </div>
             ))}

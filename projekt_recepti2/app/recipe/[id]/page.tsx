@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import DeleteRecipeButton from "@/components/DeleteRecipeButton";
 
 const prisma = new PrismaClient();
 
@@ -67,12 +68,15 @@ export default async function RecipePage({
               Nazaj na seznam
             </Link>
             {canEdit && (
-              <Link
-                href={`/recipe/${recipe.id}/edit`}
-                className="text-sm font-semibold text-orange-600 hover:underline"
-              >
-                Uredi recept
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  href={`/recipe/${recipe.id}/edit`}
+                  className="text-sm font-semibold text-orange-600 hover:underline"
+                >
+                  Uredi recept
+                </Link>
+                <DeleteRecipeButton recipeId={recipe.id} />
+              </div>
             )}
           </div>
 
