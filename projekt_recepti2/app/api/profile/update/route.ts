@@ -1,14 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   // 🔐 NextAuth session
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session || !session.user?.id) {
     return NextResponse.json(
