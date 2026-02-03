@@ -15,7 +15,7 @@ export default async function AdminPage() {
     );
   }
 
-  // NI admin
+  // NI admina
   if (session.user.role !== "ADMIN") {
     return (
       <div className="p-10 text-center text-red-600">
