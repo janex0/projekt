@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 
 export default async function Navbar() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const user = session?.user;
 
   return (

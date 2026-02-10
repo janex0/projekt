@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
@@ -7,7 +6,7 @@ import DeleteRecipeButton from "@/components/DeleteRecipeButton";
 const prisma = new PrismaClient();
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.email) {
     return (

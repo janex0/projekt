@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
 
 const prisma = new PrismaClient();
@@ -12,7 +11,7 @@ export default async function RecipePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   const recipeId = Number(id);
 

@@ -50,6 +50,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
 
           <input
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -59,6 +60,7 @@ export default function LoginPage() {
           />
 
           <input
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

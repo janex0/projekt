@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
 
 const prisma = new PrismaClient();
@@ -10,7 +9,7 @@ export default async function EditOwnRecipePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     const awaited = await params;
@@ -49,7 +48,7 @@ export default async function EditOwnRecipePage({
   async function updateRecipe(formData: FormData) {
     "use server";
 
-    const currentSession = await getServerSession(authOptions);
+    const currentSession = await auth();
 
     if (!currentSession?.user?.id) {
       redirect(`/login?callbackUrl=/recipe/${recipeId}/edit`);

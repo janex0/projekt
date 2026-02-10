@@ -54,6 +54,7 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            name="name"
             placeholder="Ime"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -62,6 +63,7 @@ export default function SignupPage() {
           />
 
           <input
+            name="email"
             type="email"
             placeholder="Email"
             value={email}
@@ -71,6 +73,7 @@ export default function SignupPage() {
           />
 
           <input
+            name="password"
             type="password"
             placeholder="Geslo"
             value={password}
@@ -80,6 +83,7 @@ export default function SignupPage() {
           />
 
           <button
+            type="submit"
             disabled={loading}
             className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
           >
