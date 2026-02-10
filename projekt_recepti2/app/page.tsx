@@ -3,15 +3,20 @@ import RecipeGrid from "./RecipeGrid";
 
 const prisma = new PrismaClient();
 
+/**
+ * Glavna stran aplikacije - prikazuje mrežo receptov z iskanjem
+ * Server komponenta ki pridobi podatke iz baze
+ */
 export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  // 🔑 OBVEZNO await
+  // 🔑 V Next.js 15+ so searchParams Promise - obvezno await
   const { q } = await searchParams;
   const query = q ?? "";
 
+  // Pridobi recepte iz baze z iskanjem po naslovu ali sestavinah
   const recipes = await prisma.recipe.findMany({
     where: query
       ? {

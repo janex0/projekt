@@ -2,118 +2,61 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import SearchInput from "@/components/SearchInput";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import RecipeCard from "@/components/RecipeCard";
 
-function highlight(text: string, query: string) {
-  if (!query) return text;
-
-  const regex = new RegExp(`(${query})`, "gi");
-  return text.split(regex).map((part, i) =>
-    part.toLowerCase() === query.toLowerCase() ? (
-      <mark
-        key={i}
-        className="bg-orange-200 text-black px-1 rounded"
-      >
-        {part}
-      </mark>
-    ) : (
-      part
-    )
-  );
+/**
+ * Interface za recept iz baze podatkov
+ */
+interface Recipe {
+  id: number;
+  title: string;
+  ingredients: string;
+  imageUrl: string | null;
 }
 
-export default function RecipeGrid({ recipes }: { recipes: any[] }) {
+/**
+ * Glavna komponenta za prikaz mreže receptov z iskanjem
+ * Uporablja debounce za optimizacijo iskanja in prikazuje loading stanje
+ */
+export default function RecipeGrid({ recipes }: { recipes: Recipe[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Stanje za iskalni niz in loading indikator
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const debouncedQuery = useDebounce(query, 300);
   const [loading, setLoading] = useState(false);
 
-  // 🔁 debounce + loader
+  // Posodobi URL z debounced query in upravljaj loading stanje
   useEffect(() => {
     setLoading(true);
 
     const timeout = setTimeout(() => {
       const params = new URLSearchParams();
-      if (query) params.set("q", query);
+      if (debouncedQuery) params.set("q", debouncedQuery);
       router.replace(`/?${params.toString()}`);
       setLoading(false);
-    }, 300);
+    }, 0); // Že debounced
 
     return () => clearTimeout(timeout);
-  }, [query, router]);
+  }, [debouncedQuery, router]);
 
   return (
     <>
       {/* 🔍 SEARCH */}
-      <div className="flex justify-center">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="🔍 Išči recepte..."
-          className="
-            w-full max-w-xl
-            p-4
-            border-2 border-orange-500
-            rounded-full
-            text-lg
-            focus:outline-none
-            focus:ring-2
-            focus:ring-orange-400
-          "
-        />
-      </div>
+      <SearchInput value={query} onChange={setQuery} />
 
       {/* 🔄 SKELETON */}
       {loading ? (
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 mt-10">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse bg-white rounded-2xl border p-6 space-y-4"
-            >
-              <div className="h-40 bg-gray-200 rounded-xl" />
-              <div className="h-5 bg-gray-200 rounded w-3/4" />
-              <div className="h-4 bg-gray-200 rounded w-full" />
-              <div className="h-4 bg-gray-200 rounded w-5/6" />
-            </div>
-          ))}
-        </div>
+        <SkeletonLoader />
       ) : (
         /* 📦 GRID */
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 mt-10">
           {recipes.map((recipe) => (
-            <div
-              key={recipe.id}
-              className="bg-white rounded-2xl border shadow-sm hover:shadow-xl transition overflow-hidden"
-            >
-              {recipe.imageUrl ? (
-                <img
-                  src={recipe.imageUrl}
-                  className="h-52 w-full object-cover"
-                />
-              ) : (
-                <div className="h-52 bg-orange-100 flex items-center justify-center text-gray-400">
-                  Brez slike
-                </div>
-              )}
-
-              <div className="p-6 space-y-3">
-                <h2 className="text-xl font-bold">
-                  {highlight(recipe.title, query)}
-                </h2>
-
-                <p className="text-gray-600 line-clamp-3">
-                  {highlight(recipe.ingredients, query)}
-                </p>
-
-                <a
-                  href={`/recipe/${recipe.id}`}
-                  className="text-orange-600 font-semibold inline-block"
-                >
-                  Poglej recept →
-                </a>
-              </div>
-            </div>
+            <RecipeCard key={recipe.id} recipe={recipe} query={query} />
           ))}
         </div>
       )}

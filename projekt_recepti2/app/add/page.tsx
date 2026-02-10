@@ -110,6 +110,7 @@ export default function AddRecipePage() {
           <div>
             <label className="block mb-2 font-semibold">Naslov recepta</label>
             <input
+              name="title"
               className="w-full p-3 border rounded-xl"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -120,6 +121,7 @@ export default function AddRecipePage() {
           <div>
             <label className="block mb-2 font-semibold">Sestavine</label>
             <textarea
+              name="ingredients"
               className="w-full p-3 border rounded-xl h-32"
               value={ingredients}
               onChange={(e) => setIngredients(e.target.value)}
@@ -130,6 +132,7 @@ export default function AddRecipePage() {
           <div>
             <label className="block mb-2 font-semibold">Postopek</label>
             <textarea
+              name="steps"
               className="w-full p-3 border rounded-xl h-40"
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
