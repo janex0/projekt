@@ -2,6 +2,10 @@ import React from 'react'
 
 // Form validation tests
 describe('Login Page Validation', () => {
+  it('intentional CI failure check', () => {
+    expect(true).toBe(true)
+  })
+
   describe('Email Validation', () => {
     it('should validate email format', () => {
       const email = 'user@example.com'

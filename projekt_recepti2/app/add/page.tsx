@@ -133,11 +133,13 @@ export default function AddRecipePage() {
             <label className="block mb-2 font-semibold">Postopek</label>
             <textarea
               name="steps"
+              maxLength={5}
               className="w-full p-3 border rounded-xl h-40"
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
               required
             />
+            <p className="mt-1 text-sm text-gray-500">NajveÄ 5 znakov.</p>
           </div>
 
           <div className="space-y-4">
